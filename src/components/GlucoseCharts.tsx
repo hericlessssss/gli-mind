@@ -42,8 +42,11 @@ const MEAL_TYPE_LABELS: Record<string, string> = {
   post_breakfast: 'Pós café',
   pre_lunch: 'Pré almoço',
   post_lunch: 'Pós almoço',
+  afternoon_snack: 'Lanche da tarde',
   pre_dinner: 'Pré jantar',
   post_dinner: 'Pós jantar',
+  supper: 'Ceia',
+  post_supper: 'Pós ceia',
   bedtime: 'Antes de dormir'
 };
 
