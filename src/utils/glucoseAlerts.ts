@@ -30,7 +30,7 @@ export const getGlucoseAlert = (glucoseLevel: number, timestamp: string): Glucos
       message: 'Glicemia dentro do esperado',
       type: 'success',
       recommendation: isLunch 
-        ? 'Aplique 1 unidade de insulina para a refeição.'
+        ? 'Aplique insulina conforme orientação médica.'
         : 'Não é necessário aplicar insulina.',
       insulinUnits: isLunch ? 1 : 0
     };
@@ -43,8 +43,8 @@ export const getGlucoseAlert = (glucoseLevel: number, timestamp: string): Glucos
       message: 'Glicemia alta',
       type: 'warning',
       recommendation: isLunch
-        ? 'Aplique 2 unidades de insulina rápida.'
-        : 'Aplique 1 unidade de insulina rápida.',
+        ? 'Aplique insulina conforme orientação médica.'
+        : 'Aplique insulina conforme orientação médica.',
       insulinUnits: isLunch ? 2 : 1
     };
   }
@@ -55,8 +55,8 @@ export const getGlucoseAlert = (glucoseLevel: number, timestamp: string): Glucos
     message: 'Glicemia muito alta!',
     type: 'danger',
     recommendation: isLunch
-      ? 'Aplique 3 unidades de insulina rápida e monitore após a refeição.'
-      : 'Aplique 2 unidades de insulina rápida e monitore após 2 horas.',
+      ? 'Aplique insulina conforme orientação médica e monitore após a refeição.'
+      : 'Aplique insulina conforme orientação médica e monitore após 2 horas.',
     insulinUnits: isLunch ? 3 : 2
   };
 };

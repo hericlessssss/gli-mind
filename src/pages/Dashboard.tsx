@@ -4,6 +4,7 @@ import { Activity, TrendingUp, TrendingDown, Clock, Plus } from 'lucide-react';
 import { format, parseISO, subDays } from 'date-fns';
 import { Welcome } from '../components/Welcome';
 import { GlucoseCharts } from '../components/GlucoseCharts';
+import { InsulinChart } from '../components/InsulinChart';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -36,7 +37,8 @@ export const Dashboard = () => {
     average: 0,
     highest: 0,
     lowest: 999,
-    total: 0
+    total: 0,
+    totalInsulin: 0
   });
 
   useEffect(() => {
@@ -62,11 +64,14 @@ export const Dashboard = () => {
 
       if (data && data.length > 0) {
         const glucoseLevels = data.map(reading => reading.glucose_level);
+        const totalInsulin = data.reduce((sum, reading) => sum + (reading.insulin_units || 0), 0);
+        
         setStats({
           average: Math.round(glucoseLevels.reduce((a, b) => a + b, 0) / glucoseLevels.length),
           highest: Math.max(...glucoseLevels),
           lowest: Math.min(...glucoseLevels),
-          total: data.length
+          total: data.length,
+          totalInsulin: totalInsulin
         });
       }
     } catch (err) {
@@ -124,6 +129,10 @@ export const Dashboard = () => {
                 <p className="text-sm text-gray-400">Mais Baixa</p>
                 <p className="text-2xl font-bold text-red-500">{stats.lowest} mg/dL</p>
               </div>
+              <div className="col-span-2 bg-dark-300 rounded-lg p-4">
+                <p className="text-sm text-gray-400">Total de Insulina</p>
+                <p className="text-2xl font-bold text-accent-500">{stats.totalInsulin} unidades</p>
+              </div>
             </div>
           ) : (
             <p className="text-center text-gray-400 py-4">
@@ -135,6 +144,9 @@ export const Dashboard = () => {
 
       {/* Charts */}
       <GlucoseCharts readings={recentReadings} />
+      
+      {/* Insulin Chart */}
+      <InsulinChart readings={recentReadings} />
 
       {/* Recent Readings */}
       <div className="bg-gray-900 rounded-lg p-6">
