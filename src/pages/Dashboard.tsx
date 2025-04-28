@@ -1,12 +1,15 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, Suspense } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Activity, TrendingUp, TrendingDown, Clock, Plus } from 'lucide-react';
-import { format, parseISO, subDays } from 'date-fns';
+import { Activity, TrendingUp, TrendingDown, Clock, Plus, FileDown } from 'lucide-react';
+import { format, parseISO } from 'date-fns';
 import { Welcome } from '../components/Welcome';
 import { GlucoseCharts } from '../components/GlucoseCharts';
 import { InsulinChart } from '../components/InsulinChart';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
+
+// Lazy load PDF components
+const PDFComponents = React.lazy(() => import('../components/PDFComponents'));
 
 interface GlucoseReading {
   id: string;
@@ -15,6 +18,11 @@ interface GlucoseReading {
   meal_type: string;
   insulin_applied: boolean;
   insulin_units: number | null;
+  meal_items?: Array<{
+    name: string;
+    high_glycemic: boolean;
+  }>;
+  notes?: string | null;
 }
 
 const MEAL_TYPE_LABELS: Record<string, string> = {
@@ -40,22 +48,40 @@ export const Dashboard = () => {
     total: 0,
     totalInsulin: 0
   });
+  const [userName, setUserName] = useState('');
 
   useEffect(() => {
     if (user) {
       fetchRecentReadings();
+      fetchUserProfile();
     }
   }, [user]);
 
+  const fetchUserProfile = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('first_name, last_name')
+        .eq('id', user?.id)
+        .single();
+
+      if (error) throw error;
+
+      if (data) {
+        const fullName = [data.first_name, data.last_name].filter(Boolean).join(' ');
+        setUserName(fullName || user?.email?.split('@')[0] || 'Usuário');
+      }
+    } catch (err) {
+      console.error('Error fetching user profile:', err);
+    }
+  };
+
   const fetchRecentReadings = async () => {
     try {
-      const sevenDaysAgo = subDays(new Date(), 7).toISOString();
-      
       const { data, error } = await supabase
         .from('glucose_readings')
         .select('*')
         .eq('user_id', user?.id)
-        .gte('timestamp', sevenDaysAgo)
         .order('timestamp', { ascending: false });
 
       if (error) throw error;
@@ -87,6 +113,10 @@ export const Dashboard = () => {
     return { color: 'text-green-500', icon: Activity };
   };
 
+  const handleReadingClick = (reading: GlucoseReading) => {
+    navigate('/glucose', { state: { selectedReading: reading } });
+  };
+
   return (
     <div className="space-y-6 pb-20">
       <Welcome />
@@ -95,18 +125,35 @@ export const Dashboard = () => {
         {/* Quick Actions */}
         <div className="bg-gray-900 rounded-lg p-6">
           <h2 className="text-xl font-semibold mb-4">Ações Rápidas</h2>
-          <button
-            onClick={() => navigate('/glucose')}
-            className="w-full flex items-center justify-center space-x-2 p-4 bg-primary-600 hover:bg-primary-700 rounded-lg text-white font-medium transition-colors"
-          >
-            <Plus className="w-5 h-5" />
-            <span>Novo Registro de Glicemia</span>
-          </button>
+          <div className="space-y-3">
+            <button
+              onClick={() => navigate('/glucose')}
+              className="w-full flex items-center justify-center space-x-2 p-4 bg-primary-600 hover:bg-primary-700 rounded-lg text-white font-medium transition-colors"
+            >
+              <Plus className="w-5 h-5" />
+              <span>Novo Registro de Glicemia</span>
+            </button>
+
+            {!loading && recentReadings.length > 0 && (
+              <Suspense fallback={
+                <button className="w-full flex items-center justify-center space-x-2 p-4 bg-accent-600 rounded-lg text-white font-medium">
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  <span>Carregando PDF...</span>
+                </button>
+              }>
+                <PDFComponents
+                  readings={recentReadings}
+                  stats={stats}
+                  userName={userName}
+                />
+              </Suspense>
+            )}
+          </div>
         </div>
 
         {/* Statistics */}
         <div className="bg-gray-900 rounded-lg p-6">
-          <h2 className="text-xl font-semibold mb-4">Estatísticas (7 dias)</h2>
+          <h2 className="text-xl font-semibold mb-4">Estatísticas Gerais</h2>
           {loading ? (
             <div className="flex justify-center py-4">
               <div className="w-8 h-8 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" />
@@ -136,7 +183,7 @@ export const Dashboard = () => {
             </div>
           ) : (
             <p className="text-center text-gray-400 py-4">
-              Nenhum registro nos últimos 7 dias
+              Nenhum registro encontrado
             </p>
           )}
         </div>
@@ -157,12 +204,16 @@ export const Dashboard = () => {
           </div>
         ) : recentReadings.length > 0 ? (
           <div className="space-y-4">
-            {recentReadings.map(reading => {
+            {recentReadings.slice(0, 10).map(reading => {
               const status = getGlucoseStatus(reading.glucose_level);
               const StatusIcon = status.icon;
               
               return (
-                <div key={reading.id} className="bg-dark-300 rounded-lg p-4">
+                <div
+                  key={reading.id}
+                  onClick={() => handleReadingClick(reading)}
+                  className="bg-dark-300 rounded-lg p-4 hover:bg-dark-400 cursor-pointer transition-all transform hover:scale-[1.02] active:scale-[0.98]"
+                >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
                       <StatusIcon className={`w-5 h-5 ${status.color}`} />

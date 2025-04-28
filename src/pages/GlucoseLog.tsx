@@ -28,25 +28,19 @@ const MEAL_TYPES = [
   'post_breakfast',
   'pre_lunch',
   'post_lunch',
-  'afternoon_snack',
   'pre_dinner',
   'post_dinner',
-  'supper',
-  'post_supper',
   'bedtime'
 ] as const;
 
 const MEAL_TYPE_LABELS: Record<typeof MEAL_TYPES[number], string> = {
-  fasting: 'Ao acordar',
-  pre_breakfast: 'Pré café da manhã',
-  post_breakfast: 'Pós café da manhã',
-  pre_lunch: 'Pré almoço',
-  post_lunch: 'Pós almoço',
-  afternoon_snack: 'Lanche da tarde',
-  pre_dinner: 'Pré jantar',
-  post_dinner: 'Pós jantar',
-  supper: 'Ceia',
-  post_supper: 'Pós ceia',
+  fasting: 'Ao acordar (Jejum)',
+  pre_breakfast: 'Antes do café da manhã',
+  post_breakfast: 'Depois do café da manhã',
+  pre_lunch: 'Antes do almoço',
+  post_lunch: 'Depois do almoço',
+  pre_dinner: 'Antes do jantar',
+  post_dinner: 'Depois do jantar',
   bedtime: 'Antes de dormir'
 };
 
