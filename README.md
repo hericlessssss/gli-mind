@@ -120,4 +120,8 @@ Para suporte e dúvidas, por favor abra uma issue no GitHub ou entre em contato 
 
 ---
 
+<<<<<<< HEAD
 Desenvolvido com ❤️ por [Labora Tech](https://labora-tech.com/)
+=======
+Desenvolvido com ❤️ por [Labora Tech](https://labora-tech.com/)
+>>>>>>> d275ff92bcfe909c140adfba868528f6b7e98fb3
